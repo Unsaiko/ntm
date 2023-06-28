@@ -1,0 +1,48 @@
+#version 400
+
+layout (quads, fractional_odd_spacing, ccw) in;
+
+struct TerrainParams
+{
+    float height;
+};
+
+struct CoordTransforms
+{
+    mat4 model;     
+    mat4 view;      
+    mat4 projection;
+};
+
+uniform CoordTransforms coords;
+uniform TerrainParams params;
+uniform sampler2D heightMap;
+
+in vec2 TextureCoord[];
+
+out vec2 texCoord;
+out float height;
+
+void main()
+{
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    
+    vec2 uv1 = mix(TextureCoord[0], TextureCoord[1], u);
+    vec2 uv2 = mix(TextureCoord[2], TextureCoord[3], u);
+    texCoord = mix(uv2, uv1, v);
+    
+    height = texture(heightMap, texCoord).r;
+    
+    vec4 uVec = gl_in[1].gl_Position - gl_in[0].gl_Position;
+    vec4 vVec = gl_in[2].gl_Position - gl_in[3].gl_Position;
+    vec4 normal = normalize( vec4(cross(vVec.xyz, uVec.xyz), 0) );
+    
+    vec4 p1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
+	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
+	vec4 pos = mix(p2, p1, gl_TessCoord.y);
+
+	pos.y -= height * params.height;
+
+    gl_Position = coords.projection * coords.view * coords.model * pos;
+}
