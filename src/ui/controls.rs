@@ -1,5 +1,7 @@
 use imgui::Ui;
 
+use crate::renderer::Texture2D;
+
 use super::Widget;
 
 #[derive(Clone)]
@@ -35,6 +37,61 @@ impl<T> Widget for Combo<T> where T: std::fmt::Display, T: Clone {
                 token.end();
             },
             _ => {}
+        }
+    }
+}
+
+pub struct Label {
+    text: String
+}
+
+impl Label {
+    pub fn new(text: &str) -> Self {
+        Self { text: String::from(text) }
+    }
+
+    pub fn change_text(&mut self, text: &str) {
+        self.text = String::from(text);
+    }
+}
+
+impl Widget for Label {
+    fn on_render(&mut self, frame: &Ui) {
+        frame.text(self.text.as_str())
+    }
+}
+
+// pub struct Viewport {
+//     frame: Texture2D
+// }
+
+// impl Viewport {
+//     pub fn new(frame: Texture2D) -> Self {
+//         Self { frame: frame }
+//     }
+// }
+
+// impl Widget for Viewport {
+//     fn on_render(&mut self, frame: &Ui) {
+           
+//     }
+// }
+
+pub struct Button {
+    label: String,
+    action: Box<dyn FnMut()>
+}
+
+impl Button {
+    pub fn new(label: &str, action: impl FnMut() + 'static) -> Self {
+        Self { label: String::from(label), action: Box::new(action) }
+    }
+}
+
+impl Widget for Button {
+    fn on_render(&mut self, frame: &Ui) {
+        if frame.button(self.label.as_str()) {
+            (self.action)();
         }
     }
 }

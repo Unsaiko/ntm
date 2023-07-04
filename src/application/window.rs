@@ -4,7 +4,7 @@ use crate::logger::Logger;
 pub struct Window {
     width: u32,
     height: u32,
-    sdl_context: Sdl,
+    _sdl_context: Sdl,
     window_handle: sdl2::video::Window,
     event_pump: EventPump
 }
@@ -37,7 +37,7 @@ impl Window {
             };
 
         let event_pump = sdl.event_pump().unwrap();
-        Window { width: width, height: height, sdl_context: sdl,
+        Window { width: width, height: height, _sdl_context: sdl,
             window_handle: window, event_pump}
     }
 

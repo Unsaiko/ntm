@@ -2,7 +2,7 @@ use std::{mem};
 
 use imgui::{TextureId};
 use sdl2::{event::Event, video::GLContext};
-use crate::{renderer::*, generator::{Terrain, Heightmap}, ui::{UI, controls::Combo, Widget}, modifiers::{HeightmapModifier, PerlinModifier}};
+use crate::{renderer::*, generator::{Terrain, Heightmap}, ui::{UI, controls::{Combo, Label, Button}, Widget}, modifiers::{HeightmapModifier, PerlinModifier}};
 
 use super::{ Window };
 
@@ -23,6 +23,7 @@ pub struct Application {
     ui: UI,
     modifier: Box<dyn HeightmapModifier>,
     combo: Combo<f32>,
+    butt: Button
 }
 
 impl Application {
@@ -39,7 +40,9 @@ impl Application {
             camera: Camera::new(1.77), framebuffer: Framebuffer::new(width, height), ui: ui,
             terrain_height: 20.0, heightmap_texture: Texture2D::new(), terrain: Terrain::new(32, 32), viewport_selected: true,
             modifier:  Box::new(PerlinModifier::new(128f32, 10)),
-            combo: Combo::new("Test", vec![32.1, 21.5, 33.3, 15.2])
+            combo: Combo::new("Test", vec![32.1, 21.5, 33.3, 15.2]), butt: Button::new("Blya", || {
+                Renderer::set_clear_color(0.8, 0.0, 0.3, 1.0)
+            })
         }
     }
     
@@ -113,20 +116,25 @@ impl Application {
 
         frame.window("Generic").build(|| {
             if imgui::CollapsingHeader::new("Heightmap").build(&frame) {
-                frame.text("Resolution:");
-                let combo = frame.begin_combo("##heightmapsize", self.heightmap.size().to_string());
-                let mut selected = self.heightmap.size();
-                match combo {
-                    Some(com) => {
-                        for item in self.heightmap.get_sizes() {
-                            if frame.menu_item(item.to_string()) {
-                                selected = *item;
-                            }
-                        }
-                        com.end();
-                    },
-                    _ => {}
-                }
+                //frame.text("Resolution:");
+                let mut resolution_combo = Combo::new("Resolution:", self.heightmap.get_sizes().to_vec());
+                // let combo = frame.begin_combo("##heightmapsize", self.heightmap.size().to_string());
+                // let mut selected = self.heightmap.size();
+                // match combo {
+                //     Some(com) => {
+                //         for item in self.heightmap.get_sizes() {
+                //             if frame.menu_item(item.to_string()) {
+                //                 selected = *item;
+                //             }
+                //         }
+                //         com.end();
+                //     },
+                //     _ => {}
+                // }
+                
+                resolution_combo.on_render(frame);
+
+                let selected = resolution_combo.get_selected();
 
                 if selected != self.heightmap.size() {
                     self.heightmap.set_size(selected);
@@ -165,6 +173,7 @@ impl Application {
             if imgui::CollapsingHeader::new("TEST!!!! settings").build(&frame) {
                 self.combo.on_render(frame);
                 frame.text(self.combo.get_selected().to_string());
+                self.butt.on_render(frame);
             }
         });
 
